@@ -1,2 +1,2 @@
-web: java -jar build/libs/tiny-concurrent-server-all-1.0-SNAPSHOT.jar -Dserver.port=$PORT
+web: java -Dserver.port=$PORT -jar build/libs/tiny-concurrent-server-all-1.0-SNAPSHOT.jar
 
