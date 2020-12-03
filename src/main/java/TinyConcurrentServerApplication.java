@@ -12,7 +12,8 @@ import java.util.concurrent.ExecutionException;
 public class TinyConcurrentServerApplication {
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         final InetAddress host = Inet4Address.getByName("0.0.0.0");
-        ServerSocket serverSocket = new ServerSocket(80, 1024, host);
+	String serverPort = System.getProperty("server.port","8080");
+        ServerSocket serverSocket = new ServerSocket(Integer.parseInt(serverPort), 1024, host);
         WebServer webServer = new WebServer(serverSocket);
         webServer.waitTermination();
         System.out.println("main thread exiting");
