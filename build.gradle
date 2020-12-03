@@ -29,5 +29,5 @@ task fatJar(type: Jar) {
     with jar
 }
 
-task stage(dependsOn: 'bootJar') {
+task stage(dependsOn: 'fatJar') {
 }
