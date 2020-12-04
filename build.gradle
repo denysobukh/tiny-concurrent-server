@@ -1,6 +1,10 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'com.palantir.docker' version '0.25.0'
 }
+
+
 
 group 'denysobukhov'
 version '1.0-SNAPSHOT'
@@ -14,20 +18,33 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
 
+compileJava {
+    options.release = 8
+}
+
 test {
     useJUnitPlatform()
 }
 
+
 task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': version,
+                'Implementation-Version': archiveVersion,
                 'Main-Class': 'TinyConcurrentServerApplication'
     }
-    baseName = project.name + '-all'
+    archiveBaseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
+docker {
+    name 'tiny-concurrent-server:1.0'
+    dependsOn fatJar
+    files tasks.fatJar.archiveFile
+    noCache true
+}
+
 task stage(dependsOn: 'fatJar') {
 }
+
