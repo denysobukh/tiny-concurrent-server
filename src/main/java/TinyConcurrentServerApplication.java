@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -12,8 +13,9 @@ import java.util.concurrent.ExecutionException;
 public class TinyConcurrentServerApplication {
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         final InetAddress host = Inet4Address.getByName("0.0.0.0");
-	String serverPort = System.getProperty("server.port");
-        ServerSocket serverSocket = new ServerSocket(Integer.parseInt(serverPort), 1024, host);
+        String serverPort = System.getProperty("server.port");
+        final int port = Integer.parseInt(Optional.of(serverPort).orElseThrow(() -> new IllegalArgumentException("server.port variable is not specified")));
+        ServerSocket serverSocket = new ServerSocket(port, 1024, host);
         WebServer webServer = new WebServer(serverSocket);
         webServer.waitTermination();
         System.out.println("main thread exiting");

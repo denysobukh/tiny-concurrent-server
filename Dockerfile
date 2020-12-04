@@ -1,5 +1,6 @@
 FROM java:8
+ENV PORT=8080
 WORKDIR /
 ADD /build/libs/tiny-concurrent-server-all-1.0-SNAPSHOT.jar tiny-concurrent-server-all-1.0-SNAPSHOT.jar
-EXPOSE 8080
-CMD java -jar tiny-concurrent-server-all-1.0-SNAPSHOT.jar
+EXPOSE $PORT
+CMD java java -Dserver.port=$PORT -jar tiny-concurrent-server-all-1.0-SNAPSHOT.jar
