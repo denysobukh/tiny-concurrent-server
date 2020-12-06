@@ -1,8 +1,9 @@
-package server;
+package denysobukhov.server;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +26,7 @@ public class WebServer {
 
         listenerTask = executorService.submit(() -> {
             try {
-                while (!Thread.currentThread().isInterrupted()) {
+                while (!executorService.isShutdown()) {
                     final Socket accept = serverSocket.accept();
                     hits.incrementAndGet();
                     executorService.submit(new ResponseHandler(accept));
@@ -43,7 +44,7 @@ public class WebServer {
     public void shutdown() throws InterruptedException {
         executorService.shutdown();
         executorService.awaitTermination(10, TimeUnit.SECONDS);
-        if (!executorService.isTerminated()) {
+        if (!executorService.isShutdown()) {
             List<Runnable> orfans = executorService.shutdownNow();
             System.out.println("orfans: " + orfans.size());
         }
@@ -59,18 +60,23 @@ public class WebServer {
 
     private static class ResponseHandler implements Runnable {
 
-        private static final String response = "HTTP/1.1 200 OK\r\n\r\n<html>\n" +
-                "<body>\n" +
-                "<h1>Hello, World!</h1>\n" +
-                "</body>\n" +
+        private static final String RESPONSE_BODY = "<!DOCTYPE html>\r\n" +
+                "<html>\r\n" +
+                "<body>\r\n" +
+                "<h1>Hello, World!</h1>\r\n" +
+                "</body>\r\n" +
                 "</html>\r\n";
+        private static final String RESPONSE_HEADER =
+                "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: text/html; charset=utf-8\r\n" +
+                        "Content-Length: " + RESPONSE_BODY.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
+                        "Connection: close\r\n" +
+                        "\r\n" + RESPONSE_BODY;
 
         private final Socket socket;
 
-        public ResponseHandler(Socket socket) throws IOException {
+        public ResponseHandler(Socket socket) {
             this.socket = socket;
-//            System.out.println("connection from " + socket.getInetAddress() + ":" + socket.getPort());
-//            System.out.print(".");
         }
 
         @Override
@@ -81,14 +87,11 @@ public class WebServer {
                 StringBuilder stringBuilder = new StringBuilder();
                 while (!socket.isClosed()) {
                     String line = bufferedReader.readLine();
-//                    System.out.println("=>" + line);
-//                    System.out.println(Arrays.toString(line.getBytes(StandardCharsets.UTF_8)));
                     if (!line.isEmpty()) {
                         stringBuilder.append(line);
                     } else {
-//                        System.out.println("<===");
                         if (stringBuilder.indexOf("GET /") != -1) {
-                            printWriter.print(response);
+                            printWriter.print(RESPONSE_HEADER);
                             printWriter.flush();
                         }
                         if (!socket.getKeepAlive()) {
